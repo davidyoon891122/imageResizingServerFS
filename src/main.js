@@ -38,7 +38,7 @@ async function searchImage(query) {
 const server = http.createServer((req, res) => {
   async function main() {
     const result = await searchImage('mountain')
-    const resp = await fetch(result.url)
+    const resp = await fetch(result.url) // Todo: What is the fetch
     resp.body.pipe(res)
   }
 

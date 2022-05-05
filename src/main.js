@@ -4,6 +4,7 @@ require('dotenv').config()
 const http = require('http')
 const { createApi } = require('unsplash-js')
 const { default: fetch } = require('node-fetch')
+const sharp = require('sharp')
 
 const unsplash = createApi({
   accessKey: process.env.UNSPLASH_API_ACCESS_KEY,

@@ -103,7 +103,12 @@ const server = http.createServer((req, res) => {
       console.log(message)
       await promisify(pipeline)(
         stream,
-        sharp().resize(width, height).png(),
+        sharp()
+          .resize(width, height, {
+            fit: 'contain',
+            background: '#ffff32',
+          })
+          .png(),
         res
       )
 

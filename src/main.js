@@ -8,7 +8,7 @@ const { createApi } = require('unsplash-js')
 const { default: fetch } = require('node-fetch')
 const { pipeline } = require('stream')
 const { promisify } = require('util')
-// const sharp = require('sharp')
+const sharp = require('sharp')
 
 const unsplash = createApi({
   accessKey: process.env.UNSPLASH_API_ACCESS_KEY,
@@ -66,8 +66,27 @@ async function getCashedImageOrSearchedImage(query) {
  *
  * @param {string} url
  */
-function getQueryStringFromUrl(url) {
-  return url.slice(1)
+function convertURLToImageInfo(url) {
+  const urlObj = new URL(url, 'http://localhost:5005')
+  /**
+   *
+   * @param {string} name
+   * @param {number} defaultValue
+   * @returns
+   */
+  function getSearchParams(name, defaultValue) {
+    const str = urlObj.searchParams.get(name)
+    return str ? parseInt(str, 10) : defaultValue
+  }
+
+  const width = getSearchParams('width', 400)
+  const height = getSearchParams('height', 400)
+
+  return {
+    query: urlObj.pathname.slice(1),
+    width,
+    height,
+  }
 }
 
 const server = http.createServer((req, res) => {
@@ -78,10 +97,16 @@ const server = http.createServer((req, res) => {
       return
     }
 
-    const query = await getQueryStringFromUrl(req.url)
+    const { query, width, height } = await convertURLToImageInfo(req.url)
     try {
       const { message, stream } = await getCashedImageOrSearchedImage(query)
       console.log(message)
+      await promisify(pipeline)(
+        stream,
+        sharp().resize(width, height).png(),
+        res
+      )
+
       stream.pipe(res)
     } catch {
       res.statusCode = 400
